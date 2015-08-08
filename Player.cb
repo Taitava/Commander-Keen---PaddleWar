@@ -1,0 +1,68 @@
+
+
+Function CreatePlayers()
+	KeenPlayer = NewPlayer(cfgPlayers=2,		277*Yf, cbKeyLeft,	cbKeyRight)
+	NewPlayer(cfgPlayers<>1,	130*Yf, cbKeyA,		cbKeyD)
+EndFunction
+
+Function ResetPlayers()
+	For p.Player = Each Player
+		Delete p
+	Next p
+	CreatePlayers()
+EndFunction
+
+Function Players()
+	For p.Player = Each Player
+		Select p\mode
+		Case 0 //KEEN
+			aim_left	= KeyDown(p\key_left)
+			aim_right	= KeyDown(p\key_right)
+		Case 1 //COMPUTER
+			b.Ball		= NearestBall(p\x,p\y)
+			If b = NULL Then
+				//No balls in the game
+				//Go To center
+				aim_left	= (Borders(BLEFT)+Borders(BRIGHT))/2 < p\x-cfgPaddleWidth/2
+				aim_right	= (Borders(BLEFT)+Borders(BRIGHT))/2 > p\x+cfgPaddleWidth/2
+			Else
+				aim_left	= p\x > b\x
+				aim_right	= p\x < b\x
+				If Abs(p\x-b\x) < cfgPaddleWidth*Xf/3 Then
+					aim_left	= 0
+					aim_right	= 0
+				EndIf
+				If Timer()-p\time_stopped > COMPUTER_ACTIVITY_INTERVAL And p\time_stopped Then
+					If p\react_after = 0 Then p\react_after = Timer()+COMPUTER_REACTION_TIME
+					If Timer() < p\react_after Then
+						aim_left	= 0
+						aim_right	= 0
+					Else
+						p\react_after = 0
+					EndIf
+				EndIf
+			EndIf
+			If aim_left = 0 And aim_right = 0 Then
+				If p\time_stopped = 0 Then p\time_stopped = Timer()
+			Else
+				p\time_stopped = False
+			EndIf
+		EndSelect
+		If aim_left Then p\x = p\x - PLAYER_SPEED*Xf*Sf
+		If aim_right Then p\x = p\x + PLAYER_SPEED*Xf*Sf
+		p\x			= Min(Max(Borders(BLEFT)+cfgPaddleWidth/2*Xf,p\x),Borders(BRIGHT)-cfgPaddleWidth/2*Xf)
+		p\left_x	= p\x-(cfgPaddleWidth/2+RoundDown(cfgBallDiameter/2.0))*Xf
+		p\right_x	= p\x+(cfgPaddleWidth/2+RoundDown(cfgBallDiameter/2.0))*Xf
+		DrawImage PaddleImg, p\x,p\y
+	Next p
+EndFunction
+
+Function NewPlayer(mode,y#, key_left,key_right)
+	p.Player	= New(Player)
+	p\x			= CenterX()
+	p\y			= y
+	p\mode		= mode
+	p\key_left	= key_left
+	p\key_right	= key_right
+	Return ConvertToInteger(p)
+EndFunction

@@ -1,0 +1,174 @@
+
+Function CreateExtraClasses()
+	DefaultMask ON, 240,129,0
+	
+	//KEEN WITH POGO
+	img_left	= LoadImage("Graphics\pogo-Left.png")
+	img_right	= LoadImage("Graphics\pogo-Right.png")
+	NewExtraClass("POGO", img_right,img_left)
+	HotSpot img_left, Int(2*Xf),Int(27*Yf)
+	HotSpot img_right, Int(14*Xf),Int(27*Yf)
+	
+	//Exit
+	img_right			= LoadImage("Graphics\Exit.png")
+	img_disappear		= LoadAnimImage("Graphics\Exit-animation.png",32,58,0,5)
+	ec.ExtraClass		= NewExtraClass("E"+"XIT", img_right)
+	ec\img_disappear	= img_disappear
+	ec\disappear_time	= 800		//Animation length in milliseconds
+	ec\disappear_frames	= 5
+	ec\max_instances	= 1			//Limit concurrent instances To one
+	AutoResizeImage(img_disappear)
+	HotSpot img_right, Int(32*Xf),Int(94*Yf)
+	HotSpot img_disappear, Int(32*Xf),Int(94*Yf)
+	
+	//DEAD KEEN
+	img = LoadImage("Graphics\death.png")
+	NewExtraClass("DEAD", img)
+	HotSpot img, Int(19*Xf),Int(24*Yf)
+	
+	DefaultMask OFF
+EndFunction
+
+Function NewExtraClass(name$, img_right, img_left=0)
+	ec.ExtraClass	= New(ExtraClass)
+	ec\name			= name
+	ec\img_left		= img_left
+	ec\img_right	= img_right
+	If img_left Then AutoResizeImage(img_left)
+	AutoResizeImage(img_right)
+	Return ConvertToInteger(ec)
+EndFunction
+
+Function NewExtra(class_name$,x#,y#)
+	SetWindow "newextra"
+	ec.ExtraClass	= ExtraClassID(class_name)
+	If ec = NULL Then MakeError "Extra class '"+class_name+"' was Not found!"
+	If ec\max_instances > 0 And CountExtras(class_name) >= ec\max_instances Then Return False
+	e.Extra			= New(Extra)
+	e\x				= x
+	e\y				= y
+	e\class			= ec
+	Select class_name
+	Case "POGO"
+		Extra_New_POGO(e)
+	Case "DEAD"
+		Extra_New_DEAD(e)
+	EndSelect
+	SetWindow "Exit newextra"
+	Return ConvertToInteger(e)
+EndFunction
+
+Function Extras()
+	For e.Extra = Each Extra
+		ec.ExtraClass = ConvertToType(e\class)
+		
+		new_y#		= e\y + e\gravity * Sf * Yf
+		new_x#		= e\x + e\speed * Sf * Xf
+		If e\jump > 0 Then
+			new_y	= new_y - e\jump*Sf
+			e\jump	= e\jump - 2*Sf
+		EndIf
+		e\x	= new_x
+		e\y = new_y
+		
+		Select ec\name
+		Case "POGO"
+			Extra_POGO(e)
+		Case "DEAD"
+			Extra_DEAD(e)
+		EndSelect
+		
+		If e\disappear_after And Timer() >= e\disappear_after Then
+			Delete e
+			Goto continue
+		EndIf
+					
+		//Draw
+		If False=e\disappear_after Or False=ec\img_disappear Then
+			img = ec\img_right
+			If ec\img_left And e\angle > 90 And e\angle <= 270 Then img = ec\img_left
+			DrawImage img, e\x,e\y
+		Else
+			percent#= Min(1.0 - Float(e\disappear_after - Timer()) / ec\disappear_time, 1.0)
+			frame	= percent * (ec\disappear_frames-1)
+			SetWindow "frame "+frame+"  "+percent
+			DrawImage ec\img_disappear, e\x,e\y, frame
+		EndIf
+		
+		continue:
+	Next e
+EndFunction
+
+Function Extra_New_POGO(extr4)
+	e.Extra		= ConvertToType(extr4)
+	e\angle		= 0
+	e\speed		= 2
+	e\gravity	= 3
+	Sound(EntranceSnd,e\x)
+EndFunction
+
+Function Extra_New_DEAD(extr4)
+	e.Extra				= extr4
+	e\speed				= 4
+	e\gravity			= 3
+	e\disappear_after	= Timer() + 3000
+EndFunction
+
+Function Extra_POGO(extr4)
+	e.Extra		= ConvertToType(extr4)
+	
+	//Check collision To human player
+	p.Player = KeenPlayer
+	If Lines_Intersect(e\x,e\y,new_x,new_y, p\left_x,p\y,p\right_x,p\y) Then
+		e\jump = 30
+		Sound(PogoSnd,e\x)
+	EndIf
+	
+	//Check collision To Exit object
+	For e2.Extra = Each Extra
+		If e2\class = ExtraClassID("Exit") Then
+			If Distance(e\x,e\y, e2\x,e2\y) < 50*Xf Then
+				ec2.ExtraClass		= e2\class
+				e2\disappear_after	= Timer()+ec2\disappear_time
+				Delete e
+				Sound(ClearSnd,e\x)
+				Return False
+			EndIf
+		EndIf
+	Next e2
+	
+	//Check If Keen falls too low
+	If e\y > Borders(BBOTTOM) Then
+		NewExtra("DEAD",e\x,e\y)
+		Sound(DeathSnd,e\x)
+		Delete e
+		Return False
+	EndIf
+EndFunction
+
+Function Extra_DEAD(extr4)
+	e.Extra = extr4
+	If Not e\jump Then e\jump = 30
+EndFunction
+
+Function ExtraClassID(class_name$)
+	class_name = Upper(class_name$)
+	For ec.ExtraClass = Each ExtraClass
+		If ec\name = class_name Then Return ConvertToInteger(ec)
+	Next ec
+EndFunction
+
+Function CountExtras(class_name$)
+	count = 0
+	class = ExtraClassID(class_name)
+	For e.Extra = Each Extra
+		If e\class = class Then count + 1
+	Next e
+	Return count
+EndFunction
+
+Function DeleteExtras()
+	For e.Extra = Each Extra
+		Delete e
+	Next e
+EndFunction

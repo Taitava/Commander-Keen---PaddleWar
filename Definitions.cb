@@ -1,0 +1,134 @@
+Global BackgroundImg
+Global PaddleImg
+Global BallImg
+
+Global GameOn
+Global Xf#
+Global Yf#
+Global Sf#	//Speed factor
+Global FrameTime
+Global RestartRequired
+Global MenuBack
+Global CatchScreenImg
+
+Global PaddleSnd
+Global BorderSnd
+Global GoalSnd
+Global FailSnd
+Global EntranceSnd
+Global ClearSnd
+Global PogoSnd
+Global DeathSnd
+
+Global cfgScreenWidth
+Global cfgScreenHeight
+Global cfgFullscreen
+Global cfgSoundVolume
+Global cfgMusicVolume
+Global cfgMaxScore
+Global cfgBallSpeed		As Float
+Global cfgBallDiameter	As Float
+Global cfgPaddleSpeed	As Float
+Global cfgPaddleWidth
+Global cfgPlayers
+Global cfgCPUActivityInterval
+Global cfgCPUReactionTime
+Global cfgExtras
+Global cfgDebug
+
+Dim ONOFF(1) As String
+ONOFF(OFF)	= "OFF"
+ONOFF(ON)	= "ON"
+Function ONOFFBool(value$)
+	If value = "ON" Then Return 1 Else Return 0
+EndFunction
+
+Dim PlayerModeTitle(2) As String
+PlayerModeTitle(0) = "Human vs. CPU"
+PlayerModeTitle(1) = "Human vs. Human"
+PlayerModeTitle(2) = "CPU vs. CPU (boring)"
+
+Const CONF						= "settings.txt"
+'Const BALL_SPEED				= 2.5
+Const PLAYER_SPEED				= 1.9
+Const COMPUTER_ACTIVITY_INTERVAL= 500 //(milliseconds) If computer stands still at least this long,
+Const COMPUTER_REACTION_TIME	= 300 //(milliseconds) Next Time it want To start moving, it 'sleeps' For this Time.
+									  //This makes the computer To act more like a human (And To make little mistakes by reacting slowly)
+
+Const NATIVE_SCREEN_WIDTH	= 640
+Const NATIVE_SCREEN_HEIGHT	= 400
+Const GREEN_COLOR			= "4dfd50"
+Const DARK_COLOR			= "028c02"
+Const DISABLED_COLOR		= "10101a"
+Const KEEN					= 0
+Const COMPUTER				= 1
+Const BTOP					= 0
+Const BRIGHT				= 1
+Const BBOTTOM				= 2
+Const BLEFT					= 3
+
+Function BALL_SPEED()
+EndFunction
+
+Dim Scores(1)
+Dim Borders(3)
+
+Global KeenPlayer
+
+Global CountMusics
+Global MusicChannel
+Type Music
+	Field path$
+EndType
+
+Type Player
+	Field x				As Float
+	Field y				As Float
+	Field left_x		As Float
+	Field right_x		As Float
+	Field key_left		As Byte
+	Field key_right		As Byte
+	Field mode			As Byte
+	Field time_stopped	As Integer	//Only For computer player
+	Field react_after	As Integer	//Only For computer player
+EndType
+
+Type Ball
+	Field x				As Float
+	Field y				As Float
+	Field angle			As Float
+	Field appear_after	As Integer
+EndType
+
+
+Type Extra
+	Field x					As Float
+	Field y					As Float
+	Field class				As Integer
+	Field jump				As Float
+	Field speed				As Float
+	Field angle				As Float
+	Field gravity			As Float
+	Field disappear_after	As Integer
+EndType
+
+Type ExtraClass
+	Field name				As String
+	Field img_left			As Integer
+	Field img_right			As Integer
+	Field img_disappear		As Integer
+	Field disappear_time	As Short
+	Field disappear_frames	As Byte
+	Field max_instances		As Byte
+EndType
+
+Type MenuItem
+	Field menu_index		As Integer
+	Field label				As String
+	Field open_menu			As Byte
+	Field value				As String
+	Field value_step		As Float
+	Field value_min			As Float
+	Field value_max			As Float
+	Field disabled			As Byte
+EndType

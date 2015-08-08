@@ -1,0 +1,6 @@
+
+SetFont LoadFont("Dejavu Sans", ScreenHeight())
+
+commander	= MakeImage(TextWidth("Commander"),TextHeight("Commander"))
+keen		= MakeImage(TextWidth("Keen"),TextHeight("Keen"))
+

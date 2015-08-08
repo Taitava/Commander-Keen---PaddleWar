@@ -1,0 +1,164 @@
+Include "Definitions.cb"
+Include "Graphics.cb"
+Include "CBRepository.cb"
+Include "Sound.cb"
+Include "Player.cb"
+Include "Ball.cb"
+Include "Extra.cb"
+Include "Menu.cb"
+Include "Settings.cb"
+
+LoadSettings()
+
+InitializeGraphics(cfgScreenWidth,cfgScreenHeight,cfgFullscreen)
+SetWindow "Commander Keen - PaddleWar! by Jare 2014"
+
+Borders(BTOP) 	= 122*Yf
+Borders(BRIGHT)	= 469*Xf
+Borders(BBOTTOM)= 286*Yf
+Borders(BLEFT)	= 149*Xf
+
+LoadMusics()
+LoadSounds()
+CreateExtraClasses()
+CreateMenus()
+SetFont LoadFont("Graphics\Commander Keen (Medium).fon",16*Yf)
+
+SAFEEXIT cfgDebug
+
+PlayMusic()
+Repeat
+	FrameTime	= Timer()-old_timer
+	old_timer	= Timer()
+	Sf			= FrameTime/(1000.0/60.0)
+	If FrameTime > 1000 Then Sf = 0
+	Background()
+	Statistics()
+	Players()
+	Balls()
+	Extras()
+	If KeyHit(cbKeyEsc) Or False=GameOn Then Menu(1)
+	If cfgDebug Then
+		Line 0,Borders(BTOP), 1000,Borders(BTOP)
+		Line 0,Borders(BBOTTOM), 1000,Borders(BBOTTOM)
+		Line Borders(BLEFT),0, Borders(BLEFT),1000
+		Line Borders(BRIGHT),0, Borders(BRIGHT),1000
+	EndIf
+	
+	If Scores(KEEN) >= cfgMaxScore And Scores(COMPUTER) >= cfgMaxScore Then
+		Message("Draw! (Both won)")
+		EndGame()
+	ElseIf Scores(KEEN) >= cfgMaxScore Then
+		Message("Keen won!")
+		EndGame()
+	ElseIf Scores(COMPUTER) >= cfgMaxScore Then
+		Message("Computer won!")
+		EndGame()
+	EndIf
+	
+	//Stuff
+	If KeyHit(cbKeySpace) Then NewBall()
+	If KeyHit(cbKeyReturn) Then NewExtra("E"+"XIT", 520*Xf,280*Yf) : NewExtra("POGO", 160*Xf,120*Yf)
+	DrawScreen
+Forever
+
+Function NewGame()
+	EndGame()
+	GameOn = True
+	NewBall()
+	ResetPlayers()
+	DisableMenuItem(1,"Return t"+"o game", False)
+EndFunction
+
+Function EndGame()
+	DeleteBalls()
+	DeleteExtras()
+	Scores(KEEN)	= 0
+	Scores(COMPUTER)= 0
+	GameOn			= False
+	DisableMenuItem(1,"Return t"+"o game")
+EndFunction
+
+
+Function Sign(value#)
+	If value < 0 Then Return -1
+	If value > 0 Then Return 1
+	Return 0
+EndFunction
+
+Function YDirection(angle#)
+	If angle = 180 Or angle = 0 Then Return 0
+	Return -1 + 2*(angle>180)
+EndFunction
+
+Function IsFloat(value$)
+	Return InStr(value,".")
+EndFunction
+
+Function LoadSettings()
+	//Default settings
+	resolution$				= GetWord(GetResolutions(), 1)
+	cfgScreenWidth			= GetWord(resolution, 1, "x")
+	cfgScreenHeight			= GetWord(resolution, 2, "x")
+	cfgFullscreen			= True
+	cfgSoundVolume			= 100
+	cfgMusicVolume			= 40
+	cfgMaxScore				= 21
+	cfgBallSpeed			= 2.5
+	cfgBallDiameter			= 7.0
+	cfgPaddleSpeed			= 1.9
+	cfgPaddleWidth			= 30
+	cfgPlayers				= 0
+	cfgCPUActivityInterval	= 500
+	cfgCPUReactionTime		= 300
+	cfgExtras				= ON
+	cfgDebug				= OFF
+	
+	//Load settings
+	If FileExists(CONF) Then
+		ParseSettings(CONF)
+		If HasSetting("ScreenWidth")			Then cfgScreenWidth			= GetSetting("ScreenWidth")
+		If HasSetting("ScreenHeight")			Then cfgScreenHeight		= GetSetting("ScreenHeight")
+		If HasSetting("Fullscreen")				Then cfgFullscreen			= GetSetting("Fullscreen")
+		If HasSetting("SoundVolume")			Then cfgSoundVolume			= GetSetting("SoundVolume")
+		If HasSetting("MusicVolume")			Then cfgMusicVolume			= GetSetting("MusicVolume")
+		If HasSetting("MaxScore")				Then cfgMaxScore			= GetSetting("MaxScore")
+		If HasSetting("BallSpeed")				Then cfgBallSpeed			= GetSetting("BallSpeed")
+		If HasSetting("BallDiameter")			Then cfgBallDiameter		= GetSetting("BallDiameter")
+		If HasSetting("PaddleSpeed")			Then cfgPaddleSpeed			= GetSetting("PaddleSpeed")
+		If HasSetting("PaddleWidth")			Then cfgPaddleWidth			= GetSetting("PaddleWidth")
+		If HasSetting("Players")				Then cfgPlayers				= GetSetting("Players")
+		If HasSetting("CPUActivityInterval")	Then cfgCPUActivityInterval	= GetSetting("CPUActivityInterval")
+		If HasSetting("CPUReactionTime")		Then cfgCPUReactionTime		= GetSetting("CPUReactionTime")
+		If HasSetting("Extras")					Then cfgExtras				= GetSetting("Extras")
+		If HasSetting("Debug")					Then cfgDebug				= GetSetting("Debug")
+	EndIf
+EndFunction
+
+
+Function Doom()
+	StopMusic()
+	ClearKeys
+	video = PlayAnimation("Graphics/secret")
+	Repeat
+		Background()
+		DrawAnimation video, 130*Xf,63*Yf, 358*Xf,273*Yf
+		DrawScreen
+	Until KeyHit(cbKeyEsc) Or False=AnimationPlaying(video)
+	StopAnimation video
+	ClearKeys
+EndFunction
+
+Function RestartApplication()
+	SCREEN 300,200,32,1 //Just need To get into windowed mode. No matter what the resolution is.
+	Execute GetEXEName()//Otherwise we don't have focus in the application After this Line...
+	End					//...which would leave the application open because without focus this won't be called
+EndFunction
+
+Function CenterX()
+	Return (Borders(BLEFT)+Borders(BRIGHT))/2
+EndFunction
+
+Function CenterY()
+	Return (Borders(BTOP)+Borders(BBOTTOM))/2
+EndFunction

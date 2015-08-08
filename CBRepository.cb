@@ -1,0 +1,83 @@
+
+
+//Copied 2014-07-18 from http://www.cbrepository.com/codes/code/86/
+Function HEX2DEC(hexa$)
+	value = 0
+	For i = 1 To Len(hexa)
+		dec = InStr("0123456789ABCDEF", Upper(Mid(hexa,i,1)))-1
+		If dec >= 0 Then value = value * 16 + dec
+		//If dec = -1 Then $hexa is Not a valid Hex chacter And is simply omitted
+	Next i
+	Return value
+EndFunction
+
+//Copied 2014-07-18 from http://www.cbrepository.com/codes/code/86/
+Function HEXColor(hexa$, return_only=0)
+	If IsNumeric(hexa) Then
+		dec = hexa
+	Else
+		dec = HEX2DEC(hexa)
+	EndIf
+	HEXR = dec / 256^2
+	HEXG = RoundDown(dec / 256) Mod 256
+	HEXB = dec Mod 256
+	If Not return_only Then Color HEXR,HEXG,HEXB
+EndFunction
+
+//Copied 2014-07-18 from http://www.cbrepository.com/codes/code/86/
+Function IsNumeric(value$)
+    If CountWords(value,".") > 2 Then Return False //Values like 12.34.56 should not be considered as numeric
+    If Right(value,1) = "." Then Return False //A number cannot end with a dot. For example 34. is incorrect number. Numbers starting with a dot are allowed.
+    
+	For i = 1 To Len(value)
+		ascii = Asc(Mid(value,i,1))
+		If (ascii < 48 Or ascii > 57) And ascii <> 46 Then Return False //46: a Dot, 48-57: numbers 0-9
+	Next i
+	Return True
+EndFunction
+
+
+//Copied 2014-07-20 from http://www.cbrepository.com/codes/code/30/
+Global IntersX As Float, IntersY As Float
+Function Lines_Intersect(Ax#, Ay#, Bx#, By#, Cx#, Cy#, Dx#, Dy#)
+
+   Rn# = (Ay#-Cy#)*(Dx#-Cx#) - (Ax#-Cx#)*(Dy#-Cy#)
+   Rd# = (Bx#-Ax#)*(Dy#-Cy#) - (By#-Ay#)*(Dx#-Cx#)
+
+   If Rd# = 0
+       Return False    
+   Else
+       Sn# = (Ay#-Cy#)*(Bx#-Ax#) - (Ax#-Cx#)*(By#-Ay#)
+       Intersection_AB# = Rn# / Rd#
+       Intersection_CD# = Sn# / Rd#        
+       If Intersection_AB#>1 Or Intersection_CD#>1 Or Intersection_AB#<0 Or Intersection_CD#<0 Then Return False
+       IntersX = Ax# + Intersection_AB#*(Bx#-Ax#)
+       IntersY = Ay# + Intersection_AB#*(By#-Ay#)    
+       Return True        
+   EndIf
+
+End Function
+
+
+
+//Copied 2014-07-28 from http://www.cbrepository.com/codes/code/91/
+Function GetResolutions$(descending=1)
+	//Resolutions are copied 2014-07-28 from http://en.wikipedia.org/wiki/List_of_common_resolutions
+	all$		= "320x200 256x256 320x208 320x224 320x240 320x256 400x240 320x320 432x240 560x192 400x270 480x234 480x250 400x300 376x240 640x200 480x272 512x256 416x352 640x240 480x320 640x256 512x342 800x240 512x384 640x320 640x350 640x360 480x500 720x348 720x350 640x400 720x364 800x352 600x480 640x480 640x512 768x480 800x480 848x480 854x480 800x600 960x540 832x624 960x544 1024x576 1024x600 960x640 1024x640 960x720 1136x640 1024x768 1024x800 1152x720 1152x768 1280x720 1120x832 1280x768 1152x864 1280x800 1152x900 1024x1024 1366x768 1280x854 1600x768 1280x960 1440x900 1280x1024 1440x960 1600x900 1400x1050 1440x1024 1440x1080 1600x1024 1680x1050 1600x1200 1920x1080 1920x1200 2048x1152 1792x1344 1856x1392 2880x900 1800x1440 2048x1280 1920x1400 2538x1080 2560x1080 1920x1440 2160x1440 2048x1536 2304x1440 2560x1440 2304x1728 2560x1600 2560x1700 2560x1920 2880x1800 2560x2048 2800x2100 3200x1800 3200x2048 3200x2400 3840x2160 3840x2400 4096x2304 4096x3072 5120x3200 5120x4096 6400x4096 6400x4800 7680x4320 7680x4800 8192x4608"
+	available$	= ""
+	For i = 1 To CountWords(all)
+		resolution$	= GetWord(all,i)
+		w			= GetWord(resolution, 1, "x")
+		h			= GetWord(resolution, 2, "x")
+		If GFXModeExists(w,h,32) Then
+			If descending Then
+				If available Then available = " " + available
+				available = resolution + available
+			Else
+				If available Then available + " "
+				available + resolution
+			EndIf
+		EndIf
+	Next i
+	Return available
+EndFunction

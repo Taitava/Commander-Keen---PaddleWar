@@ -1,0 +1,56 @@
+
+
+Function InitializeGraphics(screen_width,screen_height,fullscreen=1)
+	SCREEN screen_width,screen_height, 32, Not fullscreen
+	Xf = screen_width / Float(NATIVE_SCREEN_WIDTH)
+	Yf = screen_height / Float(NATIVE_SCREEN_HEIGHT)
+	CreateBackground()
+	CreatePaddle()
+	CreateBall()
+EndFunction
+
+Function CreateBackground()
+	BackgroundImg = LoadImage("Graphics\background.png")
+	ResizeImage BackgroundImg, ScreenWidth(),ScreenHeight()
+EndFunction
+
+Function Background()
+	DrawImage BackgroundImg,0,0, OFF,OFF
+EndFunction
+
+Function CreatePaddle()
+	PaddleImg = MakeImage(Int(cfgPaddleWidth*Xf),Int(cfgBallDiameter*Yf))
+	HEXColor(GREEN_COLOR)
+	DrawToImage PaddleImg
+	For i# = 0 To cfgPaddleWidth-cfgBallDiameter Step 2
+		Ellipse i*Xf,0*Yf,cfgBallDiameter*Xf,cfgBallDiameter*Yf
+	Next i#
+	DrawToScreen
+	HotSpot PaddleImg //Put HotSpot of the paddle To the center of it
+EndFunction
+
+Function CreateBall()
+	BallImg = MakeImage(Int(cfgBallDiameter*Xf),Int(cfgBallDiameter*Yf))
+	DrawToImage BallImg
+	HEXColor(GREEN_COLOR)
+	Ellipse 0,0, cfgBallDiameter*Xf,cfgBallDiameter*Yf
+	DrawToScreen
+	HotSpot BallImg //Put HotSpot of the ball To the center of it
+EndFunction
+
+
+Function Statistics()
+	HEXColor(GREEN_COLOR)
+	Text 155*Xf,102*Yf, "keen: "+Scores(KEEN)
+	Text 358*Xf,102*Yf, "comp: "+Scores(COMPUTER)
+	If cfgDebug Then Text 130*Xf,355*Yf, "FPS: "+FPS()
+EndFunction
+
+Function AutoResizeImage(img)
+	ResizeImage img, ImageWidth(img)*Xf,ImageHeight(img)*Yf
+EndFunction
+
+Function CatchScreen()
+	If Not CatchScreenImg Then CatchScreenImg = MakeImage(ScreenWidth(),ScreenHeight())
+	CopyBox 0,0,ScreenWidth(),ScreenHeight(), 0,0, SCREEN(),Image(CatchScreenImg)
+EndFunction

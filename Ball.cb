@@ -1,0 +1,88 @@
+
+
+Function Balls()
+	For b.Ball = Each Ball
+		If Timer() < b\appear_after Then Goto continue //This ball is New And should appear After a little delay
+		b\appear_after = 0
+		
+		DrawImage BallImg, b\x,b\y
+		
+		//MOVE BALL (= CALCULATE New COORDINATES)
+		new_x# = b\x + Cos(b\angle) * cfgBallSpeed*Xf*Sf
+		new_y# = b\y - Sin(b\angle) * cfgBallSpeed*Yf*Sf
+		
+		//SIDE BORDER COLLISIONS
+		If new_x <= Borders(BLEFT) Or new_x >= Borders(BRIGHT) Then
+			b\angle = WrapAngle(90-(b\angle-90))
+			new_x	= b\x + Cos(b\angle)*cfgBallSpeed*Xf
+			new_y	= b\y - Sin(b\angle)*cfgBallSpeed*Yf
+			Sound(BorderSnd, b\x)
+		EndIf
+		
+		
+		//COLLISIONS To PADDLES
+		For p.Player = Each Player
+			player_direction = Sign(p\y-b\y)
+			If Lines_Intersect(b\x,b\y, new_x,new_y, p\left_x,p\y,p\right_x,p\y) And YDirection(b\angle) = player_direction Then
+				gain_angle#	= (p\x-b\x)*2 * YDirection(b\angle)
+				new_angle#	= WrapAngle(180-(b\angle-180))
+				If YDirection(b\angle) = YDirection(new_angle+gain_angle) Then gain_angle = 0
+				b\angle = new_angle + gain_angle
+				If b\angle = 90 Or b\angle = 270 Then b\angle = b\angle + Rnd(-45,45)
+				new_x	= IntersX' + Cos(b\angle)*BALL_SPEED*Xf
+				new_y	= IntersY' - Sin(b\angle)*BALL_SPEED*Yf
+				Sound(PaddleSnd,b\x)
+			EndIf
+		Next p
+		
+		//FINALLY MOVE THE BALL
+		b\x	= new_x
+		b\y	= new_y
+		
+		//GOAL COLLISIONS
+		If b\y < Borders(BTOP) Or b\y > Borders(BBOTTOM) Then
+			If b\y < Borders(BTOP) Then
+				Scores(KEEN) = Scores(KEEN) + 1
+				Sound(GoalSnd, b\x)
+			Else
+				Scores(COMPUTER) = Scores(COMPUTER) + 1
+				Sound(FailSnd, b\x)
+			EndIf
+			Delete b
+			NewBall(1-(b\y < Borders(BTOP))*2, 1000)
+		EndIf
+		
+		continue:
+	Next b
+EndFunction
+
+Function NewBall(direction=0,appearance_delay=0)
+	b.Ball			= New(Ball)
+	b\x				= CenterX()
+	b\y				= CenterY()
+	b\appear_after	= Timer() + appearance_delay
+	If direction = 0 Then
+		b\angle	= 90 + 180*Rand(1)
+	Else
+		b\angle	= 90 + 180*(direction=1)
+	EndIf
+EndFunction
+
+Function NearestBall(x#,y#)
+	nearest_distance#	= 10000
+	nearest_ball.Ball	= NULL
+	For b.Ball = Each Ball
+		If False=b\appear_after And Distance(b\x,b\y, x,y) < nearest_distance Then
+			nearest_distance= Distance(b\x,b\y, x,y)
+			nearest_ball	= b
+		EndIf
+	Next b
+	Return ConvertToInteger(nearest_ball)
+EndFunction
+
+Function DeleteBalls()
+	For b.Ball = Each Ball
+		Delete b
+	Next b
+EndFunction
+

@@ -1,0 +1,264 @@
+
+
+
+Function CreateMenus()
+	
+	//MAIN MENU
+	NewMenuItem(1,"New game")
+	NewMenuItem(1,"Configure",2)
+	NewMenuItem(1,"Return t"+"o game")
+	DisableMenuItem(1,"Return t"+"o game")
+	NewMenuItem(1,"Another song")
+	NewMenuItem(1,"Demo")
+	NewMenuItem(1,"Quit")
+	
+	//CONFIGURE
+	NewMenuItem(2,"Resolution",		3,		cfgScreenWidth+"x"+cfgScreenHeight)
+	NewMenuItem(2,"Fullscreen",		OFF,	ONOFF(cfgFullscreen))
+	NewMenuItem(2,"Sound volume",	OFF,	cfgSoundVolume,			5,		0,	100)
+	NewMenuItem(2,"Music volume",	OFF,	cfgMusicVolume,			5,		0,	100)
+	NewMenuItem(2,"Max score",		OFF,	cfgMaxScore,			1,		1,	1000)
+	NewMenuItem(2,"Ball speed",		OFF,	cfgBallSpeed,			0.1,	.1,	10)
+	NewMenuItem(2,"Ball diameter",	OFF,	cfgBallDiameter,		1.0,	1,	30)
+	NewMenuItem(2,"Paddle speed",	OFF,	cfgPaddleSpeed,			0.1,	.1,	10)
+	NewMenuItem(2,"Paddle Width",	OFF,	cfgPaddleWidth,			2.0,	2,	120)
+	NewMenuItem(2,"Players",		4,		PlayerModeTitle(cfgPlayers))
+	NewMenuItem(2,"CPU activity interval",	cfgCPUActivityInterval, 100,	100,1000)
+	NewMenuItem(2,"CPU reaction Time",		cfgCPUReactionTime,		100,	0,	1000)
+	NewMenuItem(2,"Extras",			OFF,	ONOFF(cfgExtras))
+	NewMenuItem(2,"Debug",			OFF,	ONOFF(cfgDebug))
+	NewMenuItem(2,"Reset all To defaults")
+	NewMenuItem(2,"Back")
+	
+	//RESOLUTION
+	resolutions$ = GetResolutions()
+	For i = 1 To CountWords(resolutions)
+		resolution$ = GetWord(resolutions,i)
+		NewMenuItem(3, resolution)
+	Next i
+	NewMenuItem(3,"Back")
+	
+	//PLAYERS
+	NewMenuItem(4, PlayerModeTitle(0))
+	NewMenuItem(4, PlayerModeTitle(1))
+	NewMenuItem(4, PlayerModeTitle(2))
+	
+EndFunction
+
+Function NewMenuItem(menu_index,label$,open_menu=0,value$="",value_step#=0,value_min#=0,value_max#=0)
+	mi.MenuItem		= New(MenuItem)
+	mi\menu_index	= menu_index
+	mi\label		= label
+	mi\value		= value
+	mi\value_step	= value_step
+	mi\value_min	= value_min
+	mi\value_max	= value_max
+	mi\open_menu	= open_menu
+EndFunction
+
+Function Menu(menu_index)
+	ClearKeys
+	selected= 0
+	start	= 0
+	display	= 10
+	Repeat
+		Background()
+		i = 0
+		For mi.MenuItem = Each MenuItem
+			If mi\menu_index = menu_index Then
+				If i >= start And i < start+display Then
+					HEXColor(DARK_COLOR)
+					If i=selected Then HEXColor(GREEN_COLOR) : selected_item = mi
+					If mi\disabled Then
+						HEXColor(DISABLED_COLOR)
+						If selected=i Then selected + direction
+					EndIf
+					y		= Borders(BTOP)	+ ((i-start) * TextHeight("M")) + 5*Yf
+					x		= Borders(BLEFT)	+ (4 * Xf)
+					value$	= ""
+					If mi\value <> "" Then value = Upper(mi\value)
+					Text x,y, Upper(mi\label)
+					Text Borders(BRIGHT)-TextWidth(value)-4*Yf,y, value
+				EndIf
+				i+1
+			EndIf
+		Next mi
+		count		= i
+		direction	= KeyHit(cbKeyDown) - KeyHit(cbKeyUp)
+		selected	= selected + direction
+		If selected < 0 Then selected = count-1
+		If selected >= count Then selected = 0
+		If selected >= start+display Then start = selected-display+1
+		If selected < start Then start = selected
+		If KeyHit(cbKeyReturn)	Then MenuAction(selected_item)
+		If KeyHit(cbKeyRight)	Then MenuIncreaseValue(selected_item)
+		If KeyHit(cbKeyLeft)	Then MenuDecreaseValue(selected_item)
+		If RestartRequired And menu_index = 1 Then
+			If Message("Restart now t"+"o apply? (Y/N)","YN") = "Y" Then RestartApplication()
+			RestartRequired = False
+		EndIf
+		DrawScreen OFF
+	Until KeyHit(cbKeyEsc) Or MenuBack
+	MenuBack = False
+	ClearKeys
+EndFunction
+
+Function MenuAction(menu_item)
+	mi.MenuItem = menu_item
+	If mi\label = "Back" Then MenuBack = True : Return False
+	If mi\value = "ON" Then
+		mi\value = "OFF"
+	ElseIf mi\value = "OFF" Then
+		mi\value = "ON"
+	EndIf
+	If mi\open_menu Then
+		Menu(mi\open_menu)
+	Else
+		Select mi\menu_index
+		Case 1 //MAIN MENU
+			Select mi\label
+			Case "New game"
+				NewGame()
+				MenuBack = True
+				Sound(EntranceSnd,ScreenWidth()/2)
+			Case "Another song"
+				ChangeMusic()
+			Case "Demo"
+				Doom()
+			Case "Quit"
+				End
+			EndSelect
+			If mi\label = "Return t"+"o game" Then MenuBack = True
+		Case 2 //CONFIGURE
+			setting$ = Lower(Replace(mi\label," ",""))
+			SetSetting(setting, mi\value)
+			Select setting
+			Case "fullscreen"
+				SetSetting("Fullscreen", ONOFFBool(mi\value))
+				SaveSettings(CONF)
+				RestartRequired = True
+			Case "soundvolume"
+				cfgSoundVolume = mi\value
+				Sound(FailSnd, ScreenWidth()/2) //Play a sample sound
+			Case "musicvolume"
+				cfgMusicVolume = mi\value
+				UpdateMusicVolume()
+			Case "maxscore"
+				cfgMaxScore = mi\value
+			Case "ballspeed"
+				cfgBallSpeed = mi\value
+			Case "balldiameter"
+				cfgBallDiameter = mi\value
+				CreateBall()
+				CreatePaddle()
+			Case "paddlespeed"
+				cfgPaddleSpeed = mi\value
+			Case "paddlewidth"
+				cfgPaddleWidth = mi\value
+				CreatePaddle()
+			Case "CPU activity interval"
+				cfgCPUActivityInterval = mi\value
+			Case "CPU reaction Time"
+				cfgCPUReactionTime = mi\value
+			Case "extras"
+				cfgExtras = ONOFFBool(mi\value)
+				SetSetting("Extras", ONOFFBool(mi\value))
+			Case "debug"
+				cfgDebug = ONOFFBool(mi\value)
+				SetSetting("Debug", ONOFFBool(mi\value))
+				RestartRequired = True
+			Case "resetalltodefaults"
+				 If Message("Sure t"+"o reset all? (Y/N)", "YN") = "Y" Then
+					DeleteFile CONF
+					RestartRequired	= True
+					MenuBack		= True
+				EndIf
+			EndSelect
+			SaveSettings(CONF)
+		Case 3 //RESOLUTION
+			resolution$		= mi\label
+			cfgScreenWidth	= GetWord(resolution,1,"x")
+			cfgScreenHeight	= GetWord(resolution,2,"x")
+			SetSetting("ScreenWidth", cfgScreenWidth)
+			SetSetting("ScreenHeight", cfgScreenHeight)
+			RestartRequired = True
+			SaveSettings(CONF)
+			MenuSetValue(GetMenuItem(2,"Resolution"), mi\label)
+			MenuBack = True
+		Case 4 //PLAYERS
+			MenuSetValue(GetMenuItem(2,"Players"), mi\label)
+			Select mi\label
+			Case "Human vs. CPU"
+				cfgPlayers = 0
+			Case "Human vs. Human"
+				cfgPlayers = 1
+			Case "CPU vs. CPU (boring)"
+				cfgPlayers = 2
+			EndSelect
+			MenuSetValue(GetMenuItem(2,"Players"), PlayerModeTitle(cfgPlayers))
+			SetSetting("Players", cfgPlayers)
+			SaveSettings(CONF)
+			MenuBack = True
+		EndSelect
+	EndIf
+EndFunction
+
+Function MenuIncreaseValue(menu_item)
+	mi.MenuItem = menu_item
+	If mi\value = "ON" Or mi\value = "OFF" Then Return MenuAction(mi)
+	If Not mi\value_step Then Return False
+	If IsFloat(mi\value) Then
+		mi\value = Float(mi\value) + Float(mi\value_step)
+		If Float(mi\value) > Float(mi\value_max) Then mi\value = Float(mi\value_min)
+	Else
+		mi\value = Int(mi\value) + Int(mi\value_step)
+		If Int(mi\value) > Int(mi\value_max) Then mi\value = Int(mi\value_min)
+	EndIf
+	MenuAction(mi)
+EndFunction
+
+Function MenuDecreaseValue(menu_item)
+	mi.MenuItem = menu_item
+	If mi\value = "ON" Or mi\value = "OFF" Then Return MenuAction(mi)
+	If Not mi\value_step Then Return False
+	If IsFloat(mi\value) Then
+		mi\value = Float(mi\value) - Float(mi\value_step)
+		If Float(mi\value) < Float(mi\value_min) Then mi\value = Float(mi\value_max)
+	Else
+		mi\value = Int(mi\value) - Int(mi\value_step)
+		If Int(mi\value) < Int(mi\value_min) Then mi\value = Int(mi\value_max)
+	EndIf
+	MenuAction(mi)
+EndFunction
+
+Function MenuSetValue(menu_item, value$)
+	mi.MenuItem	= menu_item
+	mi\value	= value
+EndFunction
+
+Function GetMenuItem(menu_index,label$)
+	For mi.MenuItem = Each MenuItem
+		If mi\menu_index = menu_index And mi\label = label Then Return ConvertToInteger(mi)
+	Next mi
+	Return False
+EndFunction
+
+Function DisableMenuItem(menu_index,label$,disable=1)
+	mi.MenuItem = GetMenuItem(menu_index,label)
+	mi\disabled	= disable
+EndFunction
+
+Function Message(msg$, keys$="")
+	keys = Upper(keys)
+	CatchScreen()
+	HEXColor(GREEN_COLOR)
+	ClearKeys
+	Repeat
+		DrawImage CatchScreenImg, 0,0
+		CenterText CenterX(),CenterY(), msg, 2
+		DrawScreen
+		key$ = Upper(Chr(GetKey()))
+	Until InStr(keys,key) Or (keys="" And KeyHit(cbKeyReturn))
+	ClearKeys
+	Return key
+EndFunction

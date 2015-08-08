@@ -1,0 +1,74 @@
+
+Function LoadSounds()
+	PaddleSnd	= LoadSound("Audio\paddle.wav")
+	BorderSnd	= LoadSound("Audio\border.wav")
+	GoalSnd		= LoadSound("Audio\goal.wav")
+	FailSnd		= LoadSound("Audio\fail.wav")
+	EntranceSnd	= LoadSound("Audio\entrance.wav")
+	ClearSnd	= LoadSound("Audio\clear.wav")
+	PogoSnd		= LoadSound("Audio\pogo.wav")
+	DeathSnd	= LoadSound("Audio\death.wav")
+EndFunction
+
+Function Sound(snd,x#)
+	leftright = -100 + (x/ScreenWidth())*200
+	PlaySound snd, cfgSoundVolume, leftright
+EndFunction
+
+Function LoadMusics()
+	NewMusic("Audio\aliens-ate-my-babysitter.Mid")
+	NewMusic("Audio\a-world-of-wonderment.Mid")
+	NewMusic("Audio\be-sphereful-with-my-diamonds.Mid")
+	NewMusic("Audio\jazz-me.Mid")
+	NewMusic("Audio\make-it-tighter.Mid")
+	NewMusic("Audio\to-the-future.Mid")
+	NewMusic("Audio\wednesday-on-the-beach.Mid")
+	NewMusic("Audio\welcome-to-a-kick-in-the-pants-in-good-old-hillville.Mid")
+	NewMusic("Audio\you've-got-To-eat-your-vegetables.Mid")
+EndFunction
+
+Function NewMusic(path$)
+	m.Music	= New(Music)
+	m\path	= path
+	CountMusics + 1
+EndFunction
+
+Function PlayMusic()
+	play = False
+	If Not MusicChannel Then
+		play = True
+	ElseIf Not SoundPlaying(MusicChannel) Then
+		play = True
+	EndIf
+	If play Then
+		MusicChannel = PlaySound(RandomMusic(),cfgMusicVolume)
+		SetSound MusicChannel, OFF, cfgMusicVolume //Prevent repeating the same song over And over again (at least try To prevent)
+	EndIf
+EndFunction
+
+Function UpdateMusicVolume()
+	If MusicChannel Then
+		If SoundPlaying(MusicChannel) Then SetSound MusicChannel, OFF, cfgMusicVolume
+	EndIf
+EndFunction
+
+Function RandomMusic()
+	r	= Rand(CountMusics-1)
+	i	= 0
+	For m.Music = Each Music
+		If i = r Then Return m\path
+		i + 1
+	Next m
+	MakeError "Music Access Violation"
+EndFunction
+
+Function StopMusic()
+	If MusicChannel Then
+		If SoundPlaying(MusicChannel) Then StopSound MusicChannel
+	EndIf
+EndFunction
+
+Function ChangeMusic()
+	StopMusic()
+	PlayMusic()
+EndFunction
