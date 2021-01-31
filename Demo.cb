@@ -1,6 +1,46 @@
 
-SetFont LoadFont("Dejavu Sans", ScreenHeight())
+SCREEN 1024,768
 
-commander	= MakeImage(TextWidth("Commander"),TextHeight("Commander"))
-keen		= MakeImage(TextWidth("Keen"),TextHeight("Keen"))
+SetFont LoadFont("Arial black", 72)
 
+Color 128,128,128
+commander	= MakeTextImage("COMMANDER")
+keen		= MakeTextImage("KEEN")
+
+t = Timer()
+duration = 5000
+Repeat
+	percent# = Float(Timer()-t) / Float(duration)
+	percent = Min(1,percent)
+	commander_x = FromTo(ScreenWidth(), ScreenWidth()-ImageWidth(commander), percent)
+	keen_x = FromTo(-ImageWidth(keen),0, percent)
+	
+	DrawImage commander, commander_x,0
+	DrawImage keen, keen_x,0
+	
+	DrawScreen
+Forever
+
+Function MakeTextImage(txt$)
+	// Calculate dimensions
+	from_width = TextWidth(txt)
+	from_height = TextHeight(txt)
+	to_height = ScreenHeight()
+	ratio# = Float(to_height) / Float(from_height)
+	to_width = from_width * ratio
+	
+	// Create the Image
+	img = MakeImage(from_width,from_height)
+	DrawToImage img
+	Text 0,0, txt
+	DrawToScreen
+	
+	// Resize
+	ResizeImage img, to_width,to_height
+	
+	Return img
+EndFunction
+
+Function FromTo(from#, to_#, percent#)
+	Return from + (to_-from) * percent
+EndFunction
