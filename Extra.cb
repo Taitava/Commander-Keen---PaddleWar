@@ -39,7 +39,7 @@ Function NewExtraClass(name$, img_right, img_left=0)
 	Return ConvertToInteger(ec)
 EndFunction
 
-Function NewExtra(class_name$,x#,y#)
+Function NewExtra(class_name$,x#,y#,angle#=0)
 	SetWindow "newextra"
 	ec.ExtraClass	= ExtraClassID(class_name)
 	If ec = NULL Then MakeError "Extra class '"+class_name+"' was Not found!"
@@ -47,6 +47,7 @@ Function NewExtra(class_name$,x#,y#)
 	e.Extra			= New(Extra)
 	e\x				= x
 	e\y				= y
+	e\angle			= angle
 	e\class			= ec
 	Select class_name
 	Case "POGO"
@@ -63,7 +64,8 @@ Function Extras()
 		ec.ExtraClass = ConvertToType(e\class)
 		
 		new_y#		= e\y + e\gravity * Sf * Yf
-		new_x#		= e\x + e\speed * Sf * Xf
+		x_speed#	= e\speed * Sf * Xf
+		If IsAngleLeft(e\angle) Then new_x = e\x - x_speed Else new_x = e\x + x_speed
 		If e\jump > 0 Then
 			new_y	= new_y - e\jump*Sf
 			e\jump	= e\jump - 2*Sf
@@ -86,7 +88,7 @@ Function Extras()
 		//Draw
 		If False=e\disappear_after Or False=ec\img_disappear Then
 			img = ec\img_right
-			If ec\img_left And e\angle > 90 And e\angle <= 270 Then img = ec\img_left
+			If ec\img_left And IsAngleLeft(e\angle) Then img = ec\img_left
 			DrawImage img, e\x,e\y
 		Else
 			percent#= Min(1.0 - Float(e\disappear_after - Timer()) / ec\disappear_time, 1.0)
@@ -99,9 +101,12 @@ Function Extras()
 	Next e
 EndFunction
 
+Function IsAngleLeft(angle)
+	Return angle > 90 And angle <= 270
+EndFunction
+
 Function Extra_New_POGO(extr4)
 	e.Extra		= ConvertToType(extr4)
-	e\angle		= 0
 	e\speed		= 2
 	e\gravity	= 3
 	Sound(EntranceSnd,e\x)
@@ -139,7 +144,7 @@ Function Extra_POGO(extr4)
 	
 	//Check If Keen falls too low
 	If e\y > Borders(BBOTTOM) Then
-		NewExtra("DEAD",e\x,e\y)
+		NewExtra("DEAD",e\x,e\y, e\angle)
 		Sound(DeathSnd,e\x)
 		Delete e
 		Return False

@@ -56,9 +56,23 @@ Repeat
 		EndGame()
 	EndIf
 	
-	//Stuff
+	// Create balls / pogo
 	If KeyHit(cbKeySpace) Then NewBall()
-	If KeyHit(cbKeyReturn) Then NewExtra("E"+"XIT", 520*Xf,280*Yf) : NewExtra("POGO", 160*Xf,120*Yf)
+	If KeyHit(cbKeyReturn) Then
+		// Create pogo
+		If 1 = Rand(0,1) Then
+			// Left To Right
+			exit_x = 520*Xf
+			pogo_x = 160*Xf
+			angle = 0
+		Else
+			// Right To Left
+			angle = 180
+			exit_x = 130*Xf
+			pogo_x = 460*Xf
+		EndIf
+		NewExtra("E"+"XIT", exit_x,280*Yf) : NewExtra("POGO", pogo_x,120*Yf, angle)
+	EndIf
 	DrawScreen
 Forever
 
