@@ -159,10 +159,19 @@ EndFunction
 Function Doom()
 	StopMusic()
 	ClearKeys
-	video = PlayAnimation("Graphics/secret")
+	video = PlayAnimation("Graphics/secret") // Video is from https://www.youtube.com/watch?v=SMymWpfYVyU (video copied 2014-07-28, reference added 2021-01-31)
 	Repeat
 		Background()
 		DrawAnimation video, 130*Xf,63*Yf, 358*Xf,273*Yf
+
+		// Display YouTubereference
+		HEXColor($545454)
+		Box 70*Xf,17*Yf, 480*Xf, 27*Yf, ON // Paint a couple of details away in the background
+		HEXColor($ffffff)
+		Text 70*Xf,17*Yf, "Doom 2 Speedrun Former World Record pt. 1/2"
+		Text 70*Xf,29*Yf, "by Mittarimato. Press Y t"+"o watch o"+"n YouTube."
+		If KeyHit(cbKeyY) Then Execute "https://www.youtube.com/watch?v=SMymWpfYVyU"
+		
 		DrawScreen
 	Until KeyHit(cbKeyEsc) Or False=AnimationPlaying(video)
 	StopAnimation video
