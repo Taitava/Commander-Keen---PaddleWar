@@ -52,9 +52,13 @@ Function UpdateMusicVolume()
 	EndIf
 EndFunction
 
+Global RandomMusic_last
 Function RandomMusic()
-	r	= Rand(CountMusics-1)
-	i	= 0
+	Repeat
+		r = Rand(CountMusics-1)
+	Until r <> RandomMusic_last
+	RandomMusic_last = r
+	i = 0
 	For m.Music = Each Music
 		If i = r Then Return m\path
 		i + 1
