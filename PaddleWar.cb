@@ -56,8 +56,10 @@ Repeat
 	EndIf
 	
 	// Create balls / pogo
-	If KeyHit(cbKeySpace) Then NewBall()
-	If KeyHit(cbKeyReturn) Then
+	If MouseHit(1) And MouseInArea(80*Xf, 305*Yf, (80+25)*Xf,(305+25)*Yf) Then
+		NewBall()
+	EndIf
+	If MouseHit(1) And MouseInArea(80*Xf, 278*Yf, (80+25)*Xf,(278+25)*Yf) Then
 		// Check If pogo already exists
 		If Not getFirstExtraByClass("Pogo") Then
 			// Create pogo
