@@ -58,23 +58,37 @@ EndFunction
 
 Function Menu(menu_index)
 	ClearKeys
+	ClearMouse
 	selected= 0
 	start	= 0
 	display	= 10
 	Repeat
+		mouse_has_moved = MouseMoveX() Or MouseMoveY()
 		Background()
 		i = 0
+		mouse_is_on_selected_item = False
 		For mi.MenuItem = Each MenuItem
 			If mi\menu_index = menu_index Then
 				If i >= start And i < start+display Then
+					// Calculate coordinates
+					height	= TextHeight("M")
+					width	= Borders(BRIGHT) - Borders(BLEFT) - 10
+					y		= Borders(BTOP)	+ ((i-start) * height) + 5*Yf
+					x		= Borders(BLEFT)	+ (4 * Xf)
+
+					// Select with mouse
+					If False=mi\disabled And MouseInArea(x,y, x+width-1,y+height-1) Then
+						If mouse_has_moved Then selected = i
+						If selected = i Then mouse_is_on_selected_item = True
+					EndIf
+					
+					// Set Color
 					HEXColor(DARK_COLOR)
 					If i=selected Then HEXColor(GREEN_COLOR) : selected_item = mi
 					If mi\disabled Then
 						HEXColor(DISABLED_COLOR)
 						If selected=i Then selected + direction
 					EndIf
-					y		= Borders(BTOP)	+ ((i-start) * TextHeight("M")) + 5*Yf
-					x		= Borders(BLEFT)	+ (4 * Xf)
 					value$	= ""
 					If mi\value <> "" Then value = Upper(mi\value)
 					Text x,y, Upper(mi\label)
@@ -86,11 +100,13 @@ Function Menu(menu_index)
 		count		= i
 		direction	= KeyHit(cbKeyDown) - KeyHit(cbKeyUp)
 		selected	= selected + direction
+		start		= Min(Max(start - MouseMoveZ(), 0), count-Min(count,display)) // Make menus scrollable
 		If selected < 0 Then selected = count-1
 		If selected >= count Then selected = 0
 		If selected >= start+display Then start = selected-display+1
 		If selected < start Then start = selected
-		If KeyHit(cbKeyReturn)	Then MenuAction(selected_item)
+		do_action = KeyHit(cbKeyReturn) Or (MouseHit(1) And mouse_is_on_selected_item)
+		If do_action			Then MenuAction(selected_item)
 		If KeyHit(cbKeyRight)	Then MenuIncreaseValue(selected_item)
 		If KeyHit(cbKeyLeft)	Then MenuDecreaseValue(selected_item)
 		If RestartRequired And menu_index = 1 Then

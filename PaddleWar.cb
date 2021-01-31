@@ -179,3 +179,7 @@ EndFunction
 Function CenterY()
 	Return (Borders(BTOP)+Borders(BBOTTOM))/2
 EndFunction
+
+Function MouseInArea(x1,y1, x2,y2)
+	Return MouseX() >= x1 And MouseX() <= x2 And MouseY() >= y1 And MouseY() <= y2
+EndFunction
