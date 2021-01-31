@@ -31,8 +31,8 @@ Global cfgBallDiameter	As Float
 Global cfgPaddleSpeed	As Float
 Global cfgPaddleWidth
 Global cfgPlayers
-Global cfgCPUActivityInterval
-Global cfgCPUReactionTime
+Global cfgCPUActivityInterval	//(milliseconds) If computer stands still at least this long,
+Global cfgCPUReactionTime		//(milliseconds) Next Time it want To start moving, it 'sleeps' For this Time. This makes the computer To act more like a human (And To make little mistakes by reacting slowly)
 Global cfgExtras
 Global cfgDebug
 
@@ -51,9 +51,6 @@ PlayerModeTitle(2) = "CPU vs. CPU (boring)"
 Const CONF						= "settings.txt"
 'Const BALL_SPEED				= 2.5
 Const PLAYER_SPEED				= 1.9
-Const COMPUTER_ACTIVITY_INTERVAL= 500 //(milliseconds) If computer stands still at least this long,
-Const COMPUTER_REACTION_TIME	= 300 //(milliseconds) Next Time it want To start moving, it 'sleeps' For this Time.
-									  //This makes the computer To act more like a human (And To make little mistakes by reacting slowly)
 
 Const NATIVE_SCREEN_WIDTH	= 640
 Const NATIVE_SCREEN_HEIGHT	= 400

@@ -32,8 +32,8 @@ Function Players()
 					aim_left	= 0
 					aim_right	= 0
 				EndIf
-				If Timer()-p\time_stopped > COMPUTER_ACTIVITY_INTERVAL And p\time_stopped Then
-					If p\react_after = 0 Then p\react_after = Timer()+COMPUTER_REACTION_TIME
+				If Timer()-p\time_stopped > cfgCPUActivityInterval And p\time_stopped Then
+					If p\react_after = 0 Then p\react_after = Timer()+cfgCPUReactionTime
 					If Timer() < p\react_after Then
 						aim_left	= 0
 						aim_right	= 0
