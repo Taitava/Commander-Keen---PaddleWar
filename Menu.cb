@@ -113,6 +113,7 @@ Function Menu(menu_index)
 			If Message("Restart now t"+"o apply? (Y/N)","YN") = "Y" Then RestartApplication()
 			RestartRequired = False
 		EndIf
+		PlayMusic()
 		DrawScreen OFF
 	Until KeyHit(cbKeyEsc) Or MenuBack
 	MenuBack = False

@@ -67,7 +67,7 @@ Const BRIGHT				= 1
 Const BBOTTOM				= 2
 Const BLEFT					= 3
 
-Function BALL_SPEED()
+Function BALL_SPEED() // TODO: What is this? Can it be removed?
 EndFunction
 
 Dim Scores(1)
@@ -77,9 +77,14 @@ Global KeenPlayer
 
 Global CountMusics
 Global MusicChannel
+Global tmrMusicStarted
+Global MusicDuration
 Type Music
 	Field path$
+	Field duration // In seconds
 EndType
+
+Const MUSIC_DURATIONS_FILE_PATH = "Audio\music-durations.txt"
 
 Type Player
 	Field x				As Float

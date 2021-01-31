@@ -26,7 +26,6 @@ SetFont LoadFont("Graphics\Commander Keen (Medium).fon",16*Yf)
 
 SAFEEXIT cfgDebug
 
-PlayMusic()
 Repeat
 	FrameTime	= Timer()-old_timer
 	old_timer	= Timer()
@@ -76,6 +75,8 @@ Repeat
 			NewExtra("E"+"XIT", exit_x,280*Yf) : NewExtra("POGO", pogo_x,120*Yf, angle)
 		EndIf
 	EndIf
+	
+	PlayMusic()
 	DrawScreen
 Forever
 

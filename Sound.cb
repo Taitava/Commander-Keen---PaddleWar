@@ -31,18 +31,39 @@ Function NewMusic(path$)
 	m.Music	= New(Music)
 	m\path	= path
 	CountMusics + 1
+	
+	// Find a duration For this music
+	music_file_name$ = GetWord(path, Int(CountWords(path,"\")), "\") // Remove directory from path
+	file = OpenToRead(MUSIC_DURATIONS_FILE_PATH)
+	While Not EOF(file)
+		line_$ = Trim(ReadLine(file))
+		line_music_file_name$ = GetWord(line_,1)
+		If Lower(line_music_file_name) = Lower(music_file_name) Then
+			// This Line contains the duration
+			duration_raw$ = GetWord(line_,2) // A String like 01:09, 01 is minutes And 09 is seconds
+			m\duration = Int(GetWord(duration_raw,1,":")) * 60 + Int(GetWord(duration_raw,2,":"))
+		EndIf
+	Wend
+	CloseFile file
+	If Not m\duration Then MakeError "NewMusic(): " + MUSIC_DURATIONS_FILE_PATH + " file does Not contain duration For music " + music_file_name + "."
 EndFunction
 
 Function PlayMusic()
 	play = False
 	If Not MusicChannel Then
 		play = True
-	ElseIf Not SoundPlaying(MusicChannel) Then
+	// Do Not check SoundPlaying(MusicChannel) because it's slow when called every Time in a game loop. Besides we do Not need it As the Timer below detects when a music should End.
+	ElseIf Timer()-tmrMusicStarted > MusicDuration*1000 Then
+		// The music is repeating although it should Not Repeat. Stop it so we can play a New one.
+		StopSound MusicChannel
 		play = True
 	EndIf
 	If play Then
-		MusicChannel = PlaySound(RandomMusic(),cfgMusicVolume)
-		SetSound MusicChannel, OFF, cfgMusicVolume //Prevent repeating the same song over And over again (at least try To prevent)
+		m.Music = RandomMusic()
+		MusicChannel = PlaySound(m\path,cfgMusicVolume)
+		SetSound MusicChannel, OFF, cfgMusicVolume
+		MusicDuration = m\duration
+		tmrMusicStarted = Timer()
 	EndIf
 EndFunction
 
@@ -60,7 +81,7 @@ Function RandomMusic()
 	RandomMusic_last = r
 	i = 0
 	For m.Music = Each Music
-		If i = r Then Return m\path
+		If i = r Then Return ConvertToInteger(m)
 		i + 1
 	Next m
 	MakeError "Music Access Violation"
@@ -69,6 +90,7 @@ EndFunction
 Function StopMusic()
 	If MusicChannel Then
 		If SoundPlaying(MusicChannel) Then StopSound MusicChannel
+		MusicChannel = False
 	EndIf
 EndFunction
 
