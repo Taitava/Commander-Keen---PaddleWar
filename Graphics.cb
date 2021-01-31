@@ -5,6 +5,7 @@ Function InitializeGraphics(screen_width,screen_height,fullscreen=1)
 	Xf = screen_width / Float(NATIVE_SCREEN_WIDTH)
 	Yf = screen_height / Float(NATIVE_SCREEN_HEIGHT)
 	CreateBackground()
+	CreateMouseCursor()
 	CreatePaddle()
 	CreateBall()
 EndFunction
@@ -12,6 +13,24 @@ EndFunction
 Function CreateBackground()
 	BackgroundImg = LoadImage("Graphics\background.png")
 	ResizeImage BackgroundImg, ScreenWidth(),ScreenHeight()
+EndFunction
+
+Function CreateMouseCursor()
+	// The background Image has a good arrow that we can use As a cursor, so copy that.
+	width = 18 * Xf
+	height = 22 * Yf
+	from_x = 110 * Xf
+	from_y = 306 * Yf
+	to_x = width
+	to_y = height
+	cursor = MakeImage(width*2, height*2)
+	MaskImage cursor, 168,168,168
+	DrawToImage cursor
+	Color 168,168,168
+	Box 0,0, width*2,height*2
+	DrawToScreen
+	CopyBox from_x,from_y, width,height, to_x,to_y, Image(BackgroundImg), Image(cursor)
+	ShowMouse cursor
 EndFunction
 
 Function Background()
