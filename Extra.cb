@@ -130,23 +130,28 @@ Function Extra_POGO(extr4)
 	EndIf
 	
 	//Check collision To Exit object
-	For e2.Extra = Each Extra
-		If e2\class = ExtraClassID("Exit") Then
-			If Distance(e\x,e\y, e2\x,e2\y) < 50*Xf Then
-				ec2.ExtraClass		= e2\class
-				e2\disappear_after	= Timer()+ec2\disappear_time
-				Delete e
-				Sound(ClearSnd,e\x)
-				Return False
-			EndIf
+	exit_ = getFirstExtraByClass("Exit")
+	If exit_ Then
+		e2.Extra = exit_
+		If Distance(e\x,e\y, e2\x,e2\y) < 50*Xf Then
+			ec2.ExtraClass		= e2\class
+			e2\disappear_after	= Timer()+ec2\disappear_time
+			Delete e
+			Sound(ClearSnd,e\x)
+			Return False
 		EndIf
-	Next e2
+	EndIf
 	
 	//Check If Keen falls too low
 	If e\y > Borders(BBOTTOM) Then
 		NewExtra("DEAD",e\x,e\y, e\angle)
 		Sound(DeathSnd,e\x)
 		Delete e
+		
+		// Delete the Exit
+		exit_ = getFirstExtraByClass("Exit")
+		If exit_ Then Delete ConvertToType(exit_)
+		
 		Return False
 	EndIf
 EndFunction
@@ -175,5 +180,13 @@ EndFunction
 Function DeleteExtras()
 	For e.Extra = Each Extra
 		Delete e
+	Next e
+EndFunction
+
+Function getFirstExtraByClass(class_name$)
+	For e.Extra = Each Extra
+		If e\class = ExtraClassID(class_name) Then
+			Return ConvertToInteger(e)
+		EndIf
 	Next e
 EndFunction
