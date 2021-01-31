@@ -32,10 +32,10 @@ Repeat
 	Sf			= FrameTime/(1000.0/60.0)
 	If FrameTime > 1000 Then Sf = 0
 	Background()
-	Statistics()
 	Players()
 	Balls()
 	Extras()
+	Statistics()
 	If KeyHit(cbKeyEsc) Or False=GameOn Then Menu(1)
 	If cfgDebug Then
 		Line 0,Borders(BTOP), 1000,Borders(BTOP)
